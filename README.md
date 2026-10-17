@@ -1,59 +1,87 @@
 # Marzha
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.23.
+Unit-economics calculator for small online sellers.
 
-## Development server
+Stack: Angular (standalone, signals) · Vercel Functions in `/api` · Supabase (Postgres + magic-link auth) · Vitest.
 
-To start a local development server, run:
+## Project layout
+
+- `src/` — Angular app (login page + authenticated "Products" page).
+- `api/` — Vercel Functions (TypeScript, Node.js runtime, Web-standard `Request`/`Response` handlers).
+- `shared/calc/` — framework-free TypeScript (no Angular, no Supabase imports) shared by `src/` and `api/`. Empty for now. Import it from either side via the `@shared/calc` path alias.
+- `scripts/generate-env.mjs` — writes `src/environments/environment.ts` from env vars before `ng serve`/`ng build` (local: from `.env.local`; on Vercel: from the platform's env vars).
+
+## Local setup
+
+Requires Node 22 (see `.nvmrc`, pinned via `engines` in `package.json`) — `@supabase/supabase-js` requires a native `WebSocket` global at client-construction time (for its Realtime module, even unused), which Node 20 doesn't provide by default. `/api/health.ts` itself avoids this by verifying the JWT with a plain `fetch` call instead of constructing a full Supabase client, but any future `/api` route that does call `createClient()` needs Node 22.
+
+1. `npm install`
+2. Copy `.env.local.example` to `.env.local` and fill in your Supabase project's values:
+   ```
+   SUPABASE_URL=https://<project-ref>.supabase.co
+   SUPABASE_ANON_KEY=<anon-key>
+   SUPABASE_SERVICE_ROLE_KEY=<service-role-key>
+   ```
+   `.env.local` is gitignored — never commit it. `SUPABASE_SERVICE_ROLE_KEY` is only read server-side (in `/api`) and must never be referenced from `src/`.
+3. In Supabase, enable email magic links and add `http://localhost:4200` (and your Vercel preview/production URLs) to **Authentication → URL Configuration → Redirect URLs**.
+
+### Run the frontend only
 
 ```bash
-ng serve
+npm start
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Serves the Angular app at `http://localhost:4200`. This does **not** run `/api` functions — magic-link sign-in works, but calls to `/api/health` will 404.
 
-## Code scaffolding
+### Run frontend + API together
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Use the Vercel CLI to emulate the full deployment locally:
 
 ```bash
-ng generate component component-name
+vercel link      # first time only, links this directory to a Vercel project
+vercel dev
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+This serves the Angular app and the `/api` functions on the same local port, matching production routing.
+
+## Testing
 
 ```bash
-ng generate --help
+npm test
 ```
+
+Runs the Vitest unit tests for the Angular app.
 
 ## Building
 
-To build the project run:
-
 ```bash
-ng build
+npm run build
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Outputs the production browser bundle to `dist/marzha/browser` (configured as `outputDirectory` in `vercel.json`).
 
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+## Deploying
 
 ```bash
-ng test
+vercel        # preview deployment
+vercel --prod # production deployment
 ```
 
-## Running end-to-end tests
+In the Vercel project settings, set these environment variables (Production, Preview, and Development as needed):
 
-For end-to-end (e2e) testing, run:
+| Variable | Exposed to | Notes |
+|---|---|---|
+| `SUPABASE_URL` | Client + server | Public project URL. |
+| `SUPABASE_ANON_KEY` | Client + server | Safe to expose; access is governed by Supabase RLS. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server only | **Never** import or reference this from `src/`. Only `/api` functions should read it. |
 
-```bash
-ng e2e
-```
+## Verifying the auth chain
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+1. Run `vercel dev` (or deploy a preview) and open the app.
+2. On the login page, enter your email and submit. Check your inbox and click the magic link — you should land on `/products` signed in.
+3. Grab your access token: open DevTools → Application → Local Storage → your app's origin, find the `sb-<project-ref>-auth-token` entry, and copy the `access_token` field from its JSON value.
+4. Call the health endpoint with that token:
+   ```bash
+   curl -H "Authorization: Bearer <access_token>" https://<your-deployment>/api/health
+   ```
+   A successful response returns `{ "userId": "<your-supabase-user-id>" }`, confirming the chain: Angular → Supabase magic-link auth → `/api/health` → Supabase JWT verification.

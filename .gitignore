@@ -43,3 +43,9 @@ __screenshots__/
 .DS_Store
 Thumbs.db
 .env.local
+
+# Generated at build/serve time, see scripts/generate-env.mjs
+/src/environments/environment.ts
+
+# Vercel
+.vercel
