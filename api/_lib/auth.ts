@@ -21,7 +21,8 @@ export async function authenticate(request: Request): Promise<SupabaseClient | R
   }
 
   const client = createClient(supabaseUrl, supabaseAnonKey, {
-    global: { headers: { authorization: `Bearer ${token}` } },
+    // Capitalized to match supabase-js internals; a lowercase key gets merged into "Bearer x, Bearer x".
+    global: { headers: { Authorization: `Bearer ${token}` } },
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
   });
 

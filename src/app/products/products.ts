@@ -61,12 +61,14 @@ import { Supabase } from '../core/supabase';
                 <a mat-list-item [routerLink]="['/products', product.id]">
                   <span matListItemTitle>{{ product.name }}</span>
                   <span matListItemLine>{{ product.salePrice | currency: product.currency }}</span>
-                  <span matListItemMeta class="margin" [class.negative]="product.result.profit < 0">
-                    @if (product.result.marginPct === null) {
-                      —
-                    } @else {
-                      {{ product.result.marginPct | percent: '1.0-1' }}
-                    }
+                  <span matListItemMeta class="margin">
+                    <span [class.negative]="product.result.profit < 0">
+                      @if (product.result.marginPct === null) {
+                        —
+                      } @else {
+                        {{ product.result.marginPct | percent: '1.0-1' }}
+                      }
+                    </span>
                     <span class="visually-hidden">маржа</span>
                   </span>
                 </a>
@@ -95,9 +97,13 @@ import { Supabase } from '../core/supabase';
     h1 {
       font: var(--mat-sys-headline-small);
     }
+    mat-nav-list {
+      --mat-list-list-item-trailing-supporting-text-size: var(--mat-sys-title-medium-size);
+      --mat-list-list-item-trailing-supporting-text-line-height: var(--mat-sys-title-medium-line-height);
+      --mat-list-list-item-trailing-supporting-text-weight: var(--mat-sys-title-medium-weight);
+      --mat-list-list-item-trailing-supporting-text-color: var(--mat-sys-on-surface);
+    }
     .margin {
-      font: var(--mat-sys-title-medium);
-      color: var(--mat-sys-on-surface);
       align-self: center;
     }
     .negative,

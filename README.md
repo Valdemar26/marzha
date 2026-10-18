@@ -48,8 +48,10 @@ Use the Vercel CLI to emulate the full deployment locally:
 
 ```bash
 vercel link      # first time only, links this directory to a Vercel project
-vercel dev
+set -a && . ./.env.local && set +a && vercel dev
 ```
+
+`vercel dev` gives `/api` functions only the Vercel project's **Development** env vars, which aren't set for this project, so the line above exports `.env.local` into its environment first. Without it, every `/api` call returns `500 Server misconfigured`. Also add `http://localhost:3000` to the Supabase redirect URLs so magic links work against `vercel dev`.
 
 This serves the Angular app and the `/api` functions on the same local port, matching production routing.
 
