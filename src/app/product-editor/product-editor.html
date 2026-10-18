@@ -1,0 +1,159 @@
+<mat-toolbar>
+  <a mat-icon-button routerLink="/products" aria-label="До списку товарів">
+    <mat-icon>arrow_back</mat-icon>
+  </a>
+  <span>{{ isNew() ? 'Новий товар' : 'Товар' }}</span>
+</mat-toolbar>
+@if (status() === 'loading' || saving()) {
+  <mat-progress-bar mode="indeterminate" aria-label="Зачекайте" />
+}
+
+<main class="page">
+  @switch (status()) {
+    @case ('not-found') {
+      <p role="alert">Товар не знайдено. <a routerLink="/products">До списку товарів</a></p>
+    }
+    @case ('error') {
+      <p role="alert" class="error">Не вдалося завантажити товар. Оновіть сторінку.</p>
+    }
+    @case ('ready') {
+      <form class="layout" [formGroup]="form" (ngSubmit)="save()">
+        <div class="fields">
+          <h1 class="visually-hidden">{{ form.controls.name.value || 'Новий товар' }}</h1>
+
+          <section aria-labelledby="main-heading">
+            <h2 id="main-heading">Основне</h2>
+            <mat-form-field appearance="outline">
+              <mat-label>Назва</mat-label>
+              <input matInput formControlName="name" maxlength="200" />
+              <mat-error>Вкажіть назву товару.</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Ціна продажу</mat-label>
+              <input matInput type="number" inputmode="decimal" min="0" step="any" formControlName="salePrice" />
+              <span matTextSuffix>{{ currency() }}</span>
+              <mat-error>Вкажіть ціну (0 або більше).</mat-error>
+            </mat-form-field>
+          </section>
+
+          <section aria-labelledby="lines-heading">
+            <h2 id="lines-heading">Витрати на одиницю</h2>
+            @for (line of form.controls.lines.controls; track line; let i = $index) {
+              <fieldset class="line" [formGroup]="line">
+                <legend class="visually-hidden">Витрата {{ i + 1 }}</legend>
+                <div class="row">
+                  <mat-form-field appearance="outline" class="grow">
+                    <mat-label>Назва витрати</mat-label>
+                    <input matInput formControlName="name" maxlength="200" />
+                    <mat-error>Вкажіть назву.</mat-error>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Тип</mat-label>
+                    <mat-select formControlName="kind">
+                      @for (kind of kinds; track kind) {
+                        <mat-option [value]="kind">{{ kindLabels[kind] }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+                <div class="row">
+                  @switch (line.controls.kind.value) {
+                    @case ('material') {
+                      <mat-form-field appearance="outline">
+                        <mat-label>Кількість</mat-label>
+                        <input matInput type="number" inputmode="decimal" min="0" step="any" formControlName="quantity" />
+                      </mat-form-field>
+                      <mat-form-field appearance="outline">
+                        <mat-label>Ціна за одиницю</mat-label>
+                        <input matInput type="number" inputmode="decimal" min="0" step="any" formControlName="unitPrice" />
+                        <span matTextSuffix>{{ currency() }}</span>
+                      </mat-form-field>
+                    }
+                    @case ('labor') {
+                      <mat-form-field appearance="outline">
+                        <mat-label>Години</mat-label>
+                        <input matInput type="number" inputmode="decimal" min="0" step="any" formControlName="hours" />
+                      </mat-form-field>
+                      <mat-form-field appearance="outline">
+                        <mat-label>Ставка за годину</mat-label>
+                        <input matInput type="number" inputmode="decimal" min="0" step="any" formControlName="rate" />
+                        <span matTextSuffix>{{ currency() }}</span>
+                      </mat-form-field>
+                    }
+                    @case ('fixed') {
+                      <mat-form-field appearance="outline">
+                        <mat-label>Сума</mat-label>
+                        <input matInput type="number" inputmode="decimal" min="0" step="any" formControlName="amount" />
+                        <span matTextSuffix>{{ currency() }}</span>
+                      </mat-form-field>
+                    }
+                    @case ('percent') {
+                      <mat-form-field appearance="outline">
+                        <mat-label>Відсоток від ціни</mat-label>
+                        <input matInput type="number" inputmode="decimal" min="0" max="100" step="any" formControlName="percent" />
+                        <span matTextSuffix>%</span>
+                        <mat-error>Від 0 до 100.</mat-error>
+                      </mat-form-field>
+                    }
+                  }
+                  <button
+                    mat-icon-button
+                    type="button"
+                    class="remove"
+                    (click)="removeLine(i)"
+                    [attr.aria-label]="'Видалити витрату ' + (line.controls.name.value || i + 1)"
+                  >
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </fieldset>
+            } @empty {
+              <p class="hint">Додайте матеріали, роботу, фіксовані витрати чи комісії.</p>
+            }
+            <button mat-stroked-button type="button" (click)="addLine()">
+              <mat-icon>add</mat-icon>
+              Додати витрату
+            </button>
+          </section>
+
+          <section aria-labelledby="returns-heading">
+            <h2 id="returns-heading">Повернення</h2>
+            <div class="row">
+              <mat-form-field appearance="outline">
+                <mat-label>Частка повернень</mat-label>
+                <input matInput type="number" inputmode="decimal" min="0" max="99" step="any" formControlName="returnRate" />
+                <span matTextSuffix>%</span>
+                <mat-error>Від 0 до 99.</mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Вартість повернення</mat-label>
+                <input matInput type="number" inputmode="decimal" min="0" step="any" formControlName="returnCost" />
+                <span matTextSuffix>{{ currency() }}</span>
+              </mat-form-field>
+            </div>
+          </section>
+        </div>
+
+        <aside class="summary" aria-label="Розрахунок">
+          <app-results-card [result]="result()" [currency]="currency()" />
+
+          <div class="actions">
+            <button mat-flat-button type="submit" [disabled]="saving()">Зберегти</button>
+            @if (!isNew()) {
+              @if (confirmingDelete()) {
+                <span class="confirm" role="group" aria-label="Підтвердження видалення">
+                  <button mat-flat-button type="button" class="danger" (click)="delete()" [disabled]="saving()">
+                    Так, видалити
+                  </button>
+                  <button mat-button type="button" (click)="confirmingDelete.set(false)">Скасувати</button>
+                </span>
+              } @else {
+                <button mat-button type="button" (click)="confirmingDelete.set(true)">Видалити товар</button>
+              }
+            }
+          </div>
+        </aside>
+      </form>
+    }
+  }
+</main>

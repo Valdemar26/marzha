@@ -17,7 +17,8 @@
     "baseUrl": ".",
     "paths": {
       "@shared/calc": ["shared/calc/index.ts"],
-      "@shared/calc/*": ["shared/calc/*"]
+      "@shared/calc/*": ["shared/calc/*"],
+      "@shared/api/*": ["shared/api/*"]
     }
   },
   "angularCompilerOptions": {

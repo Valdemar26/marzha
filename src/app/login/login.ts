@@ -1,5 +1,10 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { Router } from '@angular/router';
 import { Supabase } from '../core/supabase';
 
@@ -7,44 +12,87 @@ type LoginStatus = 'idle' | 'sending' | 'sent' | 'error';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule],
+  imports: [
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatProgressBarModule,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main>
-      <h1>Marzha</h1>
-      <p>Sign in with a magic link sent to your email.</p>
-
-      <form [formGroup]="form" (ngSubmit)="submit()">
-        <label for="email">Email</label>
-        <input
-          id="email"
-          type="email"
-          formControlName="email"
-          autocomplete="email"
-          [attr.aria-invalid]="form.controls.email.invalid && form.controls.email.touched"
-          aria-describedby="email-error"
-        />
-        @if (form.controls.email.invalid && form.controls.email.touched) {
-          <p id="email-error" role="alert">Enter a valid email address.</p>
+    <main class="login">
+      <mat-card appearance="outlined">
+        @if (status() === 'sending') {
+          <mat-progress-bar mode="indeterminate" aria-label="Надсилання посилання" />
         }
+        <mat-card-header>
+          <mat-card-title><h1>Маржа</h1></mat-card-title>
+          <mat-card-subtitle>Калькулятор юніт-економіки</mat-card-subtitle>
+        </mat-card-header>
 
-        <button type="submit" [disabled]="status() === 'sending'">
-          @if (status() === 'sending') {
-            Sending…
-          } @else {
-            Send magic link
-          }
-        </button>
-      </form>
+        <mat-card-content>
+          <p>Введіть email — ми надішлемо посилання для входу.</p>
 
-      <p aria-live="polite">
-        @if (status() === 'sent') {
-          Check your email for the sign-in link.
-        } @else if (status() === 'error') {
-          {{ errorMessage() }}
-        }
-      </p>
+          <form [formGroup]="form" (ngSubmit)="submit()">
+            <mat-form-field appearance="outline">
+              <mat-label>Email</mat-label>
+              <input matInput id="email" type="email" formControlName="email" autocomplete="email" />
+              @if (form.controls.email.invalid) {
+                <mat-error>Введіть коректну email-адресу.</mat-error>
+              }
+            </mat-form-field>
+
+            <button mat-flat-button type="submit" [disabled]="status() === 'sending'">
+              @if (status() === 'sending') {
+                Надсилаємо…
+              } @else {
+                Надіслати посилання
+              }
+            </button>
+          </form>
+
+          <p class="status" [class.error]="status() === 'error'" aria-live="polite">
+            @if (status() === 'sent') {
+              Перевірте пошту — там посилання для входу.
+            } @else if (status() === 'error') {
+              {{ errorMessage() }}
+            }
+          </p>
+        </mat-card-content>
+      </mat-card>
     </main>
+  `,
+  styles: `
+    .login {
+      display: grid;
+      place-items: center;
+      min-height: 100dvh;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+    mat-card {
+      width: 100%;
+      max-width: 400px;
+      overflow: hidden;
+    }
+    h1 {
+      margin: 0;
+      font: var(--mat-sys-headline-medium);
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .status {
+      min-height: 1.5em;
+      margin: 16px 0 0;
+    }
+    .error {
+      color: var(--mat-sys-error);
+    }
   `,
 })
 export class Login {
