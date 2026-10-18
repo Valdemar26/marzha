@@ -8,5 +8,6 @@
     "types": ["node"],
     "noEmit": true
   },
-  "include": ["**/*.ts", "../shared/calc/**/*.ts"]
+  "include": ["**/*.ts", "../shared/**/*.ts"],
+  "exclude": ["../shared/**/*.spec.ts"]
 }

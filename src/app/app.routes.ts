@@ -9,5 +9,10 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./products/products').then((m) => m.Products),
   },
+  {
+    path: 'products/:id',
+    canActivate: [authGuard],
+    loadComponent: () => import('./product-editor/product-editor').then((m) => m.ProductEditor),
+  },
   { path: '**', redirectTo: 'login' },
 ];

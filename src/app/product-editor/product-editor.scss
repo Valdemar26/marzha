@@ -1,0 +1,77 @@
+.layout {
+  display: grid;
+  gap: 24px;
+}
+
+@media (min-width: 840px) {
+  .layout {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    align-items: start;
+  }
+  .summary {
+    position: sticky;
+    top: 16px;
+  }
+}
+
+h2 {
+  font: var(--mat-sys-title-medium);
+  margin: 16px 0 12px;
+}
+
+section mat-form-field {
+  width: 100%;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0 12px;
+
+  mat-form-field {
+    flex: 1 1 160px;
+    width: auto;
+  }
+
+  .grow {
+    flex-basis: 220px;
+  }
+}
+
+.line {
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 12px;
+  margin: 0 0 12px;
+  padding: 12px 12px 0;
+}
+
+.remove {
+  margin-top: 4px;
+}
+
+.hint {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.confirm {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.danger {
+  --mat-button-filled-container-color: var(--mat-sys-error);
+  --mat-button-filled-label-text-color: var(--mat-sys-on-error);
+}
+
+.error {
+  color: var(--mat-sys-error);
+}

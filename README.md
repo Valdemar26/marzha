@@ -6,9 +6,12 @@ Stack: Angular (standalone, signals) · Vercel Functions in `/api` · Supabase (
 
 ## Project layout
 
-- `src/` — Angular app (login page + authenticated "Products" page).
-- `api/` — Vercel Functions (TypeScript, Node.js runtime, Web-standard `Request`/`Response` handlers).
-- `shared/calc/` — framework-free TypeScript (no Angular, no Supabase imports) shared by `src/` and `api/`. Empty for now. Import it from either side via the `@shared/calc` path alias.
+- `src/` — Angular app (Angular Material, Ukrainian UI): login, product list (`/products`), product editor (`/products/:id`, `/products/new`).
+- `api/` — Vercel Functions (TypeScript, Node.js runtime, Web-standard `Request`/`Response` handlers). `api/_lib/` holds shared helpers (the `_` prefix keeps Vercel from exposing them as routes).
+  - `GET/POST /api/products`, `GET/PUT/DELETE /api/products/:id` — every response includes `result`, computed server-side with `calculate()`. Queries run as the calling user, so Supabase RLS enforces ownership.
+- `shared/calc/` — framework-free `calculate()` (no Angular, no Supabase imports), used by both the UI (live recalculation) and `api/`. The UI imports it via the `@shared/calc` alias; `api/` uses relative imports (aliases aren't resolved at runtime on Vercel).
+- `shared/api/` — request/response types for `/api/products` (types only).
+- `supabase/migrations/` — database schema (`products`, `cost_lines`, RLS policies).
 - `scripts/generate-env.mjs` — writes `src/environments/environment.ts` from env vars before `ng serve`/`ng build` (local: from `.env.local`; on Vercel: from the platform's env vars).
 
 ## Local setup
@@ -23,7 +26,13 @@ Requires Node 22 (see `.nvmrc`, pinned via `engines` in `package.json`) — `@su
    SUPABASE_SERVICE_ROLE_KEY=<service-role-key>
    ```
    `.env.local` is gitignored — never commit it. `SUPABASE_SERVICE_ROLE_KEY` is only read server-side (in `/api`) and must never be referenced from `src/`.
-3. In Supabase, enable email magic links and add `http://localhost:4200` (and your Vercel preview/production URLs) to **Authentication → URL Configuration → Redirect URLs**.
+3. Apply the database migrations to your Supabase project (the Supabase CLI is a dev dependency):
+   ```bash
+   npx supabase login
+   npx supabase link --project-ref <project-ref>
+   npx supabase db push
+   ```
+4. In Supabase, enable email magic links and add `http://localhost:4200` (and your Vercel preview/production URLs) to **Authentication → URL Configuration → Redirect URLs**.
 
 ### Run the frontend only
 
@@ -50,7 +59,7 @@ This serves the Angular app and the `/api` functions on the same local port, mat
 npm test
 ```
 
-Runs the Vitest unit tests for the Angular app.
+Runs all Vitest unit tests: the Angular app (`src/`) and the calculator (`shared/calc/`).
 
 ## Building
 
