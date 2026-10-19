@@ -62,6 +62,25 @@ describe('analyzeScenario', () => {
       expect(example().totalMonths).toBe(4);
     });
 
+    it('ignores months of trailing stages that sell nothing', () => {
+      const scenario: Scenario = {
+        stages: [
+          { share: 0.5, discount: 0, months: 2 },
+          { share: 0, discount: 0.1, months: 4 },
+          { share: 0.5, discount: 0.2, months: 1 },
+          { share: 0, discount: 0.3, months: 5 },
+          { share: 0, discount: 0.4, months: 6 },
+        ],
+      };
+      // Empty stages in the middle still count: stock remains while they run.
+      expect(analyzeScenario(batch(), scenario).totalMonths).toBe(7);
+    });
+
+    it('has 0 months when no stage sells anything', () => {
+      const scenario: Scenario = { stages: [{ share: 0, discount: 0, months: 3 }] };
+      expect(analyzeScenario(batch(), scenario).totalMonths).toBe(0);
+    });
+
     it('computes fixed costs as O + M*T + F*S', () => {
       expect(example().fixedCosts).toBeCloseTo(10200);
     });
@@ -305,6 +324,17 @@ describe('reference case', () => {
 
   it('scenario A: everything at full price in one month breaks even at 920', () => {
     const result = analyzeScenario(reference, { stages: [{ share: 1, discount: 0, months: 1 }] });
+    expect(result.breakEvenPrice).toBeCloseTo(920, 9);
+  });
+
+  it('a trailing empty stage does not change the single-stage break-even of 920', () => {
+    const result = analyzeScenario(reference, {
+      stages: [
+        { share: 1, discount: 0, months: 1 },
+        { share: 0, discount: 0.1, months: 1 },
+      ],
+    });
+    expect(result.totalMonths).toBe(1);
     expect(result.breakEvenPrice).toBeCloseTo(920, 9);
   });
 

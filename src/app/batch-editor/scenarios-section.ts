@@ -76,14 +76,12 @@ export class ScenariosSection {
   addStage(scenario: ScenarioGroup, scenarioIndex: number): void {
     const stages = scenario.controls.stages;
     if (stages.length >= MAX_STAGES) return;
-    const previous = stages.at(stages.length - 1)?.getRawValue();
-    stages.push(
-      createStageGroup(this.fb, {
-        share: 0,
-        discount: Math.min(((previous?.discount ?? 0) + 10) / 100, 1),
-        months: 1,
-      }),
-    );
+    const values = stages.getRawValue();
+    // Percent values: share fills what's left up to 100%, discount goes 10 points deeper (at most 90%).
+    const sharesTotal = values.reduce((sum, stage) => sum + (stage.share ?? 0), 0);
+    const remaining = Math.max(0, Math.round((100 - sharesTotal) * 1e6) / 1e6);
+    const discount = Math.min((values.at(-1)?.discount ?? 0) + 10, 90);
+    stages.push(createStageGroup(this.fb, { share: remaining / 100, discount: discount / 100, months: 1 }));
     this.focusAfterRender(`#stage-${scenarioIndex}-${stages.length - 1}-share`);
   }
 

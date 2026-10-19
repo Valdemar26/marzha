@@ -55,27 +55,29 @@ export const KIND_INFO: Record<CostKind, KindInfo> = {
         @for (cost of costs().controls; track cost; let i = $index) {
           @if (cost.controls.kind.value === kind) {
             <div class="row" [formGroup]="cost" role="group" [attr.aria-label]="cost.controls.name.value || info.title">
-              <mat-form-field appearance="outline" class="grow">
-                <mat-label>Назва</mat-label>
-                <input matInput formControlName="name" maxlength="200" [id]="'cost-' + i + '-name'" />
-                <mat-error>Вкажіть назву.</mat-error>
-              </mat-form-field>
-              @if (kind === 'per_sale_percent') {
-                <mat-form-field appearance="outline">
-                  <mat-label>{{ info.amountLabel }}</mat-label>
-                  <input matInput type="number" inputmode="decimal" min="0" max="100" step="any" formControlName="percent" />
-                  <span matTextSuffix>%</span>
-                  <mat-hint>≈ {{ ((cost.controls.percent.value ?? 0) / 100) * price() | currency: currency() }} з одиниці за повною ціною</mat-hint>
-                  <mat-error>Від 0 до 100.</mat-error>
+              <div class="fields">
+                <mat-form-field appearance="outline" class="grow">
+                  <mat-label>Назва</mat-label>
+                  <input matInput formControlName="name" maxlength="200" [id]="'cost-' + i + '-name'" />
+                  <mat-error>Вкажіть назву.</mat-error>
                 </mat-form-field>
-              } @else {
-                <mat-form-field appearance="outline" [class.wide]="kind === 'monthly'">
-                  <mat-label>{{ info.amountLabel }}</mat-label>
-                  <input matInput type="number" inputmode="decimal" min="0" step="any" formControlName="amount" />
-                  <span matTextSuffix>{{ currency() }}</span>
-                  <mat-error>0 або більше.</mat-error>
-                </mat-form-field>
-              }
+                @if (kind === 'per_sale_percent') {
+                  <mat-form-field appearance="outline">
+                    <mat-label>{{ info.amountLabel }}</mat-label>
+                    <input matInput type="number" inputmode="decimal" min="0" max="100" step="any" formControlName="percent" />
+                    <span matTextSuffix>%</span>
+                    <mat-hint>≈ {{ ((cost.controls.percent.value ?? 0) / 100) * price() | currency: currency() }} з одиниці за повною ціною</mat-hint>
+                    <mat-error>Від 0 до 100.</mat-error>
+                  </mat-form-field>
+                } @else {
+                  <mat-form-field appearance="outline" [class.wide]="kind === 'monthly'">
+                    <mat-label>{{ info.amountLabel }}</mat-label>
+                    <input matInput type="number" inputmode="decimal" min="0" step="any" formControlName="amount" />
+                    <span matTextSuffix>{{ currency() }}</span>
+                    <mat-error>0 або більше.</mat-error>
+                  </mat-form-field>
+                }
+              </div>
               <button
                 mat-icon-button
                 type="button"
@@ -110,9 +112,15 @@ export const KIND_INFO: Record<CostKind, KindInfo> = {
     }
     .row {
       display: flex;
-      flex-wrap: wrap;
       align-items: flex-start;
+      gap: 0 4px;
+    }
+    .fields {
+      display: flex;
+      flex: 1 1 auto;
+      flex-wrap: wrap;
       gap: 0 12px;
+      min-width: 0;
     }
     mat-form-field {
       flex: 1 1 140px;
@@ -124,6 +132,7 @@ export const KIND_INFO: Record<CostKind, KindInfo> = {
       flex-basis: 300px;
     }
     .remove {
+      flex: none;
       margin-top: 4px;
     }
   `,

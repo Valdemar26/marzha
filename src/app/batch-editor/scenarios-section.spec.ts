@@ -39,12 +39,35 @@ describe('ScenariosSection', () => {
     expect(text()).toMatch(/100[.,]00/);
   });
 
-  it('adds a stage with a deeper discount', () => {
+  it('adds a stage with a deeper discount and no share when shares already reach 100%', () => {
     component.addStage(form.controls.scenarios.at(0), 0);
     expect(stages()).toEqual([
       { share: 1, discount: 0, months: 1 },
       { share: 0, discount: 0.1, months: 1 },
     ]);
+  });
+
+  it('gives a new stage the share left to reach 100%', () => {
+    const scenario = form.controls.scenarios.at(0);
+    scenario.controls.stages.at(0).patchValue({ share: 70, discount: 15 });
+    component.addStage(scenario, 0);
+    expect(stages()[1]).toEqual({ share: 0.3, discount: 0.25, months: 1 });
+  });
+
+  it('caps the new stage discount at 90%', () => {
+    const scenario = form.controls.scenarios.at(0);
+    scenario.controls.stages.at(0).patchValue({ share: 50, discount: 85 });
+    component.addStage(scenario, 0);
+    expect(stages()[1]).toEqual({ share: 0.5, discount: 0.9, months: 1 });
+  });
+
+  it('never gives a negative share when shares exceed 100%', () => {
+    const scenario = form.controls.scenarios.at(0);
+    scenario.controls.stages.at(0).patchValue({ share: 100 });
+    component.addStage(scenario, 0);
+    scenario.controls.stages.at(1).patchValue({ share: 20 });
+    component.addStage(scenario, 0);
+    expect(stages()[2].share).toBe(0);
   });
 
   it('reorders and removes stages, keeping at least one', () => {

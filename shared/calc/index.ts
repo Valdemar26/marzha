@@ -74,7 +74,7 @@ export interface StageHint {
 export interface ScenarioAnalysis {
   /** S = Q * (1 - d). */
   sellableUnits: number;
-  /** T = Σ m_i. */
+  /** T = Σ m_i up to and including the last stage with share > 0; later stages hold no stock. */
   totalMonths: number;
   /** Σ s_i, as a fraction. */
   sharesTotal: number;
@@ -119,7 +119,13 @@ export function analyzeScenario(batch: Batch, scenario: Scenario): ScenarioAnaly
   const costs = sumCosts(batch.costs);
   const sellableUnits = batch.quantity * (1 - batch.defectRate);
   const units = scenario.stages.map((stage) => sellableUnits * stage.share);
-  const totalMonths = scenario.stages.reduce((sum, stage) => sum + stage.months, 0);
+  // Monthly costs accrue only while stock remains, i.e. until the last stage that sells anything.
+  let totalMonths = 0;
+  let monthsSoFar = 0;
+  for (const stage of scenario.stages) {
+    monthsSoFar += stage.months;
+    if (stage.share > 0) totalMonths = monthsSoFar;
+  }
   const sharesTotal = scenario.stages.reduce((sum, stage) => sum + stage.share, 0);
   const issues: ValidationIssue[] =
     Math.abs(sharesTotal - 1) > SHARES_EPSILON ? [{ code: 'shares_sum', sharesTotal }] : [];
