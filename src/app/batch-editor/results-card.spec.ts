@@ -89,6 +89,13 @@ describe('ResultsCard', () => {
     expect(fixture.componentInstance.sliderMax()).toBe(750);
   });
 
+  it('asks for the quantity before saying no price works', async () => {
+    const empty = analyzeScenario({ quantity: 0, defectRate: 0, currency: 'UAH', costs }, single);
+    await render({ analysis: empty });
+    expect(text()).toContain('Вкажіть кількість');
+    expect(text()).not.toContain('Жодна ціна');
+  });
+
   it('asks for a scenario when there is none', async () => {
     await render({ analysis: null });
     expect(text()).toContain('Додайте сценарій');

@@ -7,6 +7,7 @@ const valid = () => ({
   defectRate: 0.05,
   targetProfit: 5000,
   competitorPrice: 250,
+  basePrice: 300,
   salesStartDate: '2026-11-01',
   costs: [
     { name: 'Закупівля', kind: 'one_time', amount: 8000, percent: 0.3 },
@@ -28,8 +29,8 @@ describe('parseBatchInput', () => {
   });
 
   it('defaults optional nullable fields to null', () => {
-    const { competitorPrice: _c, salesStartDate: _s, ...body } = valid();
-    expect(parseBatchInput(body)).toMatchObject({ competitorPrice: null, salesStartDate: null });
+    const { competitorPrice: _c, basePrice: _b, salesStartDate: _s, ...body } = valid();
+    expect(parseBatchInput(body)).toMatchObject({ competitorPrice: null, basePrice: null, salesStartDate: null });
   });
 
   it('passes a valid currency through', () => {
@@ -44,6 +45,7 @@ describe('parseBatchInput', () => {
     ['a defect rate of 100%', { defectRate: 1 }, 'defectRate'],
     ['a negative target profit', { targetProfit: -1 }, 'targetProfit'],
     ['a string competitor price', { competitorPrice: '10' }, 'competitorPrice'],
+    ['a negative base price', { basePrice: -1 }, 'basePrice'],
     ['a non-existent date', { salesStartDate: '2026-02-30' }, 'salesStartDate'],
     ['a malformed date', { salesStartDate: '01.11.2026' }, 'salesStartDate'],
     ['an out-of-range month', { salesStartDate: '2026-13-01' }, 'salesStartDate'],

@@ -13,6 +13,7 @@ const batch: SavedBatch = {
   defectRate: 0,
   targetProfit: 0,
   competitorPrice: null,
+  basePrice: null,
   salesStartDate: null,
   costs: [],
   scenarios: [
@@ -28,6 +29,7 @@ const batch: SavedBatch = {
         breakEvenPrice: 123,
         targetPrice: 123,
         stageUnits: [100],
+        profitAtBasePrice: null,
       },
     },
   ],

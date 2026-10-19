@@ -15,6 +15,7 @@ const saved: SavedBatch = {
   defectRate: 0,
   targetProfit: 1000,
   competitorPrice: null,
+  basePrice: null,
   salesStartDate: null,
   costs: [{ name: 'Закупівля', kind: 'one_time', amount: 5000 }],
   scenarios: [
@@ -30,6 +31,7 @@ const saved: SavedBatch = {
         breakEvenPrice: 50,
         targetPrice: 60,
         stageUnits: [100],
+        profitAtBasePrice: null,
       },
     },
   ],
@@ -94,6 +96,26 @@ describe('BatchEditor', () => {
     component.setPrice(55);
     component.form.controls.targetProfit.setValue(3000);
     expect(component.price()).toBe(55);
+  });
+
+  it('saves the picked price as the base price', async () => {
+    await setup(saved.id);
+    component.setPrice(75);
+    expect(component.form.dirty).toBe(true);
+    await component.save();
+    expect(api.update).toHaveBeenCalledWith(saved.id, expect.objectContaining({ basePrice: 75 }));
+  });
+
+  it('saves the suggested price when none was picked', async () => {
+    await setup(saved.id);
+    await component.save();
+    expect(api.update).toHaveBeenCalledWith(saved.id, expect.objectContaining({ basePrice: 60 }));
+  });
+
+  it('starts from the saved base price', async () => {
+    api.get.mockResolvedValue({ ...saved, basePrice: 80 });
+    await setup(saved.id);
+    expect(component.price()).toBe(80);
   });
 
   it('compares every scenario at the same price', async () => {

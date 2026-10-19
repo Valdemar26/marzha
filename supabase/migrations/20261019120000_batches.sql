@@ -11,6 +11,8 @@ create table public.batches (
   defect_rate numeric not null default 0 check (defect_rate >= 0 and defect_rate < 1),
   target_profit numeric not null default 0 check (target_profit >= 0),
   competitor_price numeric check (competitor_price >= 0),
+  -- The selling price X the user settled on; null until they pick one.
+  base_price numeric check (base_price >= 0),
   sales_start_date date,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()

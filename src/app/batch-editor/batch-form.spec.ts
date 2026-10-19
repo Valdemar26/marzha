@@ -18,6 +18,7 @@ const saved: SavedBatch = {
   defectRate: 0.07,
   targetProfit: 5000,
   competitorPrice: 250,
+  basePrice: 320,
   salesStartDate: '2026-11-01',
   costs: [
     { name: 'Закупівля', kind: 'one_time', amount: 8000 },
@@ -39,6 +40,7 @@ const saved: SavedBatch = {
         breakEvenPrice: 1,
         targetPrice: 2,
         stageUnits: [65.1, 27.9],
+        profitAtBasePrice: null,
       },
     },
   ],
@@ -77,6 +79,7 @@ describe('batch form', () => {
       defectRate: 0.05,
       targetProfit: 1000,
       competitorPrice: null,
+      basePrice: null,
       salesStartDate: null,
       costs: [
         { name: 'Комісія', kind: 'per_sale_percent', percent: 0.1 },

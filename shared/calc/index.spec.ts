@@ -277,9 +277,61 @@ describe('analyzeScenario', () => {
       expect(analyzeScenario(batch({ costs }), scenario).hintsAt(100)).toEqual([]);
     });
 
+    it('skips stages that sell no units', () => {
+      const scenario: Scenario = {
+        stages: [
+          { share: 1, discount: 0, months: 1 },
+          { share: 0, discount: 0.5, months: 1 },
+        ],
+      };
+      expect(analyzeScenario(batch({ costs }), scenario).hintsAt(100)).toEqual([]);
+    });
+
     it('never hints without monthly costs', () => {
       const noMonthly = costs.filter((cost) => cost.kind !== 'monthly');
       expect(analyzeScenario(batch({ costs: noMonthly }), staged).hintsAt(1)).toEqual([]);
+    });
+  });
+});
+
+describe('reference case', () => {
+  // Q = 100, d = 0, O = 83000, M = 9000, no per-sale costs.
+  const reference = batch({
+    costs: [
+      { name: 'Закупівля', kind: 'one_time', amount: 83000 },
+      { name: 'Склад', kind: 'monthly', amount: 9000 },
+    ],
+  });
+
+  it('scenario A: everything at full price in one month breaks even at 920', () => {
+    const result = analyzeScenario(reference, { stages: [{ share: 1, discount: 0, months: 1 }] });
+    expect(result.breakEvenPrice).toBeCloseTo(920, 9);
+  });
+
+  describe('scenario B: 80% full price for 3 months, then 10% at -20% and 10% at -50%', () => {
+    const result = analyzeScenario(reference, {
+      stages: [
+        { share: 0.8, discount: 0, months: 3 },
+        { share: 0.1, discount: 0.2, months: 1 },
+        { share: 0.1, discount: 0.5, months: 1 },
+      ],
+    });
+
+    it('breaks even at ≈ 1376.34', () => {
+      expect(result.breakEvenPrice).toBeCloseTo(1376.34, 2);
+    });
+
+    it('needs ≈ 1698.92 for a 30000 profit', () => {
+      expect(result.priceForProfit(30000)).toBeCloseTo(1698.92, 2);
+    });
+
+    it.each([
+      ['break-even', 128000 / 93],
+      ['target', 158000 / 93],
+    ])('suggests discounting on both discount stages at the %s price', (_label, price) => {
+      const hints = result.hintsAt(price);
+      expect(hints.map((hint) => hint.stageIndex)).toEqual([1, 2]);
+      expect(hints.every((hint) => hint.holdingCostPerMonth === 9000 && hint.discountCost < 9000)).toBe(true);
     });
   });
 });

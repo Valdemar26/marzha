@@ -14,13 +14,15 @@ export interface BatchInput {
   defectRate: number;
   targetProfit: number;
   competitorPrice: number | null;
+  /** The selling price X the user settled on; null until they pick one. */
+  basePrice: number | null;
   /** ISO date, YYYY-MM-DD. */
   salesStartDate: string | null;
   costs: BatchCost[];
   scenarios: ScenarioInput[];
 }
 
-/** Price-independent results of analyzeScenario(), computed server-side from the saved data. */
+/** Results of analyzeScenario(), computed server-side from the saved data. */
 export interface ScenarioSummary {
   sellableUnits: number;
   totalMonths: number;
@@ -30,6 +32,8 @@ export interface ScenarioSummary {
   /** Price that yields the batch's targetProfit. */
   targetPrice: number | null;
   stageUnits: number[];
+  /** Profit at the batch's basePrice; null when no base price is set. */
+  profitAtBasePrice: number | null;
 }
 
 export interface SavedScenario extends ScenarioInput {

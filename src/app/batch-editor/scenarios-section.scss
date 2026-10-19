@@ -57,6 +57,10 @@
   font: var(--mat-sys-body-medium);
 }
 
+.warning mat-icon {
+  flex: none;
+}
+
 .warning {
   display: flex;
   gap: 8px;

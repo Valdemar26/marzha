@@ -151,8 +151,8 @@ export function analyzeScenario(batch: Batch, scenario: Scenario): ScenarioAnaly
       const hints: StageHint[] = [];
       for (let i = 1; i < scenario.stages.length; i++) {
         const extraDiscount = scenario.stages[i].discount - scenario.stages[i - 1].discount;
-        // A stage that isn't cheaper than the previous one has no discount to weigh against holding.
-        if (extraDiscount <= 0) continue;
+        // A stage that isn't cheaper than the previous one, or sells nothing, has no discount to weigh against holding.
+        if (extraDiscount <= 0 || units[i] === 0) continue;
         const discountCost = units[i] * price * extraDiscount * (1 - costs.percent);
         if (costs.monthly > discountCost) {
           hints.push({ stageIndex: i, discountCost, holdingCostPerMonth: costs.monthly });

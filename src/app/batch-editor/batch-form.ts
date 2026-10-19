@@ -41,6 +41,8 @@ export function createBatchForm(fb: NonNullableFormBuilder) {
     defectRate: percent(fb, 0, 99),
     targetProfit: fb.control<number | null>(null, Validators.min(0)),
     competitorPrice: fb.control<number | null>(null, Validators.min(0)),
+    /** Base price X; null until the user picks one (the editor suggests a price meanwhile). */
+    basePrice: fb.control<number | null>(null, Validators.min(0)),
     /** Not edited yet (used by sales tracking); kept so saving doesn't clear it. */
     salesStartDate: fb.control<string | null>(null),
     costs: fb.array<CostGroup>([]),
@@ -94,6 +96,7 @@ export function fillBatchForm(form: BatchForm, fb: NonNullableFormBuilder, batch
     defectRate: toPercent(batch.defectRate),
     targetProfit: batch.targetProfit,
     competitorPrice: batch.competitorPrice,
+    basePrice: batch.basePrice,
     salesStartDate: batch.salesStartDate,
   });
   form.markAsPristine();
@@ -108,6 +111,7 @@ export function toBatchInput(value: BatchFormValue): BatchInput {
     defectRate: fraction(value.defectRate),
     targetProfit: value.targetProfit ?? 0,
     competitorPrice: value.competitorPrice,
+    basePrice: value.basePrice,
     salesStartDate: value.salesStartDate,
     costs: value.costs.map((cost): BatchCost => {
       const base = { name: cost.name.trim(), kind: cost.kind };

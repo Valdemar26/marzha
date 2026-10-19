@@ -121,7 +121,7 @@ export const KIND_INFO: Record<CostKind, KindInfo> = {
       flex-basis: 200px;
     }
     .wide {
-      flex-basis: 260px;
+      flex-basis: 300px;
     }
     .remove {
       margin-top: 4px;

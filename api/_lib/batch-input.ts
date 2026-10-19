@@ -37,6 +37,10 @@ export function parseBatchInput(body: unknown): BatchInput | string {
   if (competitorPrice !== null && !isNonNegative(competitorPrice)) {
     return 'competitorPrice must be a non-negative number or null';
   }
+  const basePrice = body['basePrice'] ?? null;
+  if (basePrice !== null && !isNonNegative(basePrice)) {
+    return 'basePrice must be a non-negative number or null';
+  }
   const salesStartDate = body['salesStartDate'] ?? null;
   if (salesStartDate !== null && !isIsoDate(salesStartDate)) {
     return 'salesStartDate must be a YYYY-MM-DD date or null';
@@ -54,6 +58,7 @@ export function parseBatchInput(body: unknown): BatchInput | string {
     defectRate,
     targetProfit,
     competitorPrice,
+    basePrice,
     salesStartDate,
     costs,
     scenarios,

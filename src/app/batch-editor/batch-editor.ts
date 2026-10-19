@@ -87,15 +87,14 @@ export class BatchEditor implements OnInit {
   readonly selectedAnalysis = computed(() => this.analyses()[this.selectedScenario()] ?? null);
   readonly selectedScenarioName = computed(() => this.scenarioNames().at(this.selectedScenario()) ?? '');
 
-  /** Base price X: whatever the user picked, else a suggestion that follows the inputs. */
-  private readonly chosenPrice = signal<number | null>(null);
+  /** Base price X: the saved/picked one, else a suggestion that follows the inputs. */
   private readonly suggestedPrice = computed(() => {
     const analysis = this.selectedAnalysis();
     const price =
       analysis?.priceForProfit(this.targetProfit()) ?? analysis?.breakEvenPrice ?? this.competitorPrice() ?? 0;
     return price >= 100 ? Math.ceil(price) : Math.ceil(price * 100) / 100;
   });
-  readonly price = computed(() => this.chosenPrice() ?? this.suggestedPrice());
+  readonly price = computed(() => this.formValue().basePrice ?? this.suggestedPrice());
 
   async ngOnInit(): Promise<void> {
     if (this.id() === 'new') {
@@ -113,7 +112,8 @@ export class BatchEditor implements OnInit {
   }
 
   setPrice(price: number): void {
-    this.chosenPrice.set(price);
+    this.form.controls.basePrice.setValue(price);
+    this.form.controls.basePrice.markAsDirty();
   }
 
   async save(): Promise<void> {
@@ -125,7 +125,8 @@ export class BatchEditor implements OnInit {
 
     this.saving.set(true);
     try {
-      const input = toBatchInput(this.form.getRawValue());
+      // Save the price on screen, so a suggested price becomes the base price instead of moving later.
+      const input = { ...toBatchInput(this.form.getRawValue()), basePrice: this.price() };
       const id = this.batchId();
       const batch = id === null ? await this.api.create(input) : await this.api.update(id, input);
       this.batchId.set(batch.id);

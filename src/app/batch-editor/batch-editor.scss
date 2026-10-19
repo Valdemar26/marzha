@@ -36,6 +36,10 @@ h2 {
   mat-form-field {
     flex: 1 1 140px;
   }
+
+  &.goals mat-form-field {
+    flex-basis: 100%;
+  }
 }
 
 .actions {

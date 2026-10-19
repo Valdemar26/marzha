@@ -25,16 +25,18 @@ import type { ScenarioAnalysis } from '@shared/calc';
             <dt>Ціна під прибуток {{ targetProfit() | currency: currency() : 'symbol' : '1.0-0' }}</dt>
             <dd>{{ targetPrice() === null ? 'недосяжна' : (targetPrice() | currency: currency()) }}</dd>
           </dl>
-          @if (a.breakEvenPrice === null) {
+          @if (a.sellableUnits <= 0) {
+            <p class="hint">Вкажіть кількість у партії, щоб порахувати ціну.</p>
+          } @else if (a.breakEvenPrice === null) {
             <p class="hint">
-              Жодна ціна не окупить партію: немає придатних одиниць, усі етапи зі знижкою 100% або відсоткові витрати
-              сягають 100%.
+              Жодна ціна не окупить партію: усі етапи зі знижкою 100%, частки нульові або відсоткові витрати сягають
+              100%.
             </p>
           }
 
           <h3 id="price-label">Базова ціна</h3>
           <div class="price-row">
-            <mat-slider [min]="0" [max]="sliderMax()" [step]="sliderStep()" discrete>
+            <mat-slider [min]="0" [max]="sliderMax()" [step]="sliderStep()">
               <input
                 matSliderThumb
                 [value]="price()"
@@ -157,6 +159,9 @@ import type { ScenarioAnalysis } from '@shared/calc';
       display: flex;
       gap: 8px;
       margin-bottom: 8px;
+    }
+    mat-icon {
+      flex: none;
     }
     .hint {
       color: var(--mat-sys-on-surface-variant);

@@ -38,6 +38,7 @@ interface BatchRow {
   defect_rate: number;
   target_profit: number;
   competitor_price: number | null;
+  base_price: number | null;
   sales_start_date: string | null;
   created_at: string;
   updated_at: string;
@@ -64,6 +65,7 @@ function toBatch(row: BatchRow): SavedBatch {
     defectRate: Number(row.defect_rate),
     targetProfit: Number(row.target_profit),
     competitorPrice: row.competitor_price === null ? null : Number(row.competitor_price),
+    basePrice: row.base_price === null ? null : Number(row.base_price),
     salesStartDate: row.sales_start_date,
   };
   const calcBatch = { quantity: fields.quantity, defectRate: fields.defectRate, currency: row.currency, costs };
@@ -89,6 +91,7 @@ function toBatch(row: BatchRow): SavedBatch {
         breakEvenPrice: analysis.breakEvenPrice,
         targetPrice: analysis.priceForProfit(fields.targetProfit),
         stageUnits: stages.map((stage) => analysis.sellableUnits * stage.share),
+        profitAtBasePrice: fields.basePrice === null ? null : analysis.profitAt(fields.basePrice),
       },
     };
   });
@@ -104,6 +107,7 @@ function toBatchColumns(input: BatchInput) {
     defect_rate: input.defectRate,
     target_profit: input.targetProfit,
     competitor_price: input.competitorPrice,
+    base_price: input.basePrice,
     sales_start_date: input.salesStartDate,
   };
 }
