@@ -1,17 +1,17 @@
 # Marzha
 
-Unit-economics calculator for small online sellers.
+Batch pricing for small online sellers: at what price to sell a batch to break even or to earn a target profit.
 
 Stack: Angular (standalone, signals) · Vercel Functions in `/api` · Supabase (Postgres + magic-link auth) · Vitest.
 
 ## Project layout
 
-- `src/` — Angular app (Angular Material, Ukrainian UI): login, product list (`/products`), product editor (`/products/:id`, `/products/new`).
+- `src/` — Angular app (Angular Material, Ukrainian UI): login, batch list (`/batches`), batch editor (`/batches/:id`, `/batches/new`) with costs, sales scenarios, live results and a scenario comparison.
 - `api/` — Vercel Functions (TypeScript, Node.js runtime, Web-standard `Request`/`Response` handlers). `api/_lib/` holds shared helpers (the `_` prefix keeps Vercel from exposing them as routes).
-  - `GET/POST /api/products`, `GET/PUT/DELETE /api/products/:id` — every response includes `result`, computed server-side with `calculate()`. Queries run as the calling user, so Supabase RLS enforces ownership.
-- `shared/calc/` — framework-free `calculate()` (no Angular, no Supabase imports), used by both the UI (live recalculation) and `api/`. The UI imports it via the `@shared/calc` alias; `api/` uses relative imports (aliases aren't resolved at runtime on Vercel).
-- `shared/api/` — request/response types for `/api/products` (types only).
-- `supabase/migrations/` — database schema (`products`, `cost_lines`, RLS policies).
+  - `GET/POST /api/batches`, `GET/PUT/DELETE /api/batches/:id` — a batch comes with its costs and scenarios (with stages); each scenario includes `result`, computed server-side with `analyzeScenario()`. `PUT` replaces costs and scenarios wholesale. Queries run as the calling user, so Supabase RLS enforces ownership.
+- `shared/calc/` — framework-free `analyzeScenario()` (no Angular, no Supabase imports): break-even price, price for a target profit, profit at a base price, per-stage figures and discount-vs-holding hints. Used by both the UI (live recalculation) and `api/`. The UI imports it via the `@shared/calc` alias; `api/` uses relative imports (aliases aren't resolved at runtime on Vercel).
+- `shared/api/` — request/response types for `/api/batches` (types only).
+- `supabase/migrations/` — database schema (`batches`, `batch_costs`, `scenarios`, `scenario_stages`, RLS policies through batch ownership).
 - `scripts/generate-env.mjs` — writes `src/environments/environment.ts` from env vars before `ng serve`/`ng build` (local: from `.env.local`; on Vercel: from the platform's env vars).
 
 ## Local setup
@@ -61,7 +61,7 @@ This serves the Angular app and the `/api` functions on the same local port, mat
 npm test
 ```
 
-Runs all Vitest unit tests: the Angular app (`src/`) and the calculator (`shared/calc/`).
+Runs all Vitest unit tests: the Angular app (`src/`), the calculator (`shared/calc/`) and the API input parser (`api/_lib/`).
 
 ## Building
 
@@ -89,7 +89,7 @@ In the Vercel project settings, set these environment variables (Production, Pre
 ## Verifying the auth chain
 
 1. Run `vercel dev` (or deploy a preview) and open the app.
-2. On the login page, enter your email and submit. Check your inbox and click the magic link — you should land on `/products` signed in.
+2. On the login page, enter your email and submit. Check your inbox and click the magic link — you should land on `/batches` signed in.
 3. Grab your access token: open DevTools → Application → Local Storage → your app's origin, find the `sb-<project-ref>-auth-token` entry, and copy the `access_token` field from its JSON value.
 4. Call the health endpoint with that token:
    ```bash

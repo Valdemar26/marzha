@@ -1,9 +1,9 @@
 .layout {
   display: grid;
-  gap: 24px;
+  gap: 8px 24px;
 }
 
-@media (min-width: 840px) {
+@media (min-width: 900px) {
   .layout {
     grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
     align-items: start;
@@ -12,6 +12,10 @@
     position: sticky;
     top: 16px;
   }
+  .comparison,
+  .actions {
+    grid-column: 1 / -1;
+  }
 }
 
 h2 {
@@ -19,7 +23,7 @@ h2 {
   margin: 16px 0 12px;
 }
 
-section mat-form-field {
+.full {
   width: 100%;
 }
 
@@ -30,28 +34,12 @@ section mat-form-field {
   gap: 0 12px;
 
   mat-form-field {
-    flex: 1 1 160px;
-    width: auto;
+    flex: 1 1 140px;
   }
 
-  .grow {
-    flex-basis: 220px;
+  &.goals mat-form-field {
+    flex-basis: 100%;
   }
-}
-
-.line {
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 12px;
-  margin: 0 0 12px;
-  padding: 12px 12px 0;
-}
-
-.remove {
-  margin-top: 4px;
-}
-
-.hint {
-  color: var(--mat-sys-on-surface-variant);
 }
 
 .actions {

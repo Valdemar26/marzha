@@ -27,7 +27,7 @@ export class Supabase {
   async signInWithMagicLink(email: string): Promise<{ error: string | null }> {
     const { error } = await this.client.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${window.location.origin}/products` },
+      options: { emailRedirectTo: `${window.location.origin}/batches` },
     });
     return { error: error?.message ?? null };
   }

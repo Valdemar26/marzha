@@ -29,7 +29,7 @@ type LoginStatus = 'idle' | 'sending' | 'sent' | 'error';
         }
         <mat-card-header>
           <mat-card-title><h1>Маржа</h1></mat-card-title>
-          <mat-card-subtitle>Калькулятор юніт-економіки</mat-card-subtitle>
+          <mat-card-subtitle>Ціна партії: в нуль і в плюс</mat-card-subtitle>
         </mat-card-header>
 
         <mat-card-content>
@@ -109,7 +109,7 @@ export class Login {
 
   constructor() {
     if (this.supabase.isAuthenticated()) {
-      void this.router.navigateByUrl('/products');
+      void this.router.navigateByUrl('/batches');
     }
   }
 

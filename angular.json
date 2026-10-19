@@ -73,7 +73,7 @@
         "test": {
           "builder": "@angular/build:unit-test",
           "options": {
-            "include": ["**/*.spec.ts", "../shared/**/*.spec.ts"]
+            "include": ["**/*.spec.ts", "../shared/**/*.spec.ts", "../api/**/*.spec.ts"]
           }
         }
       }
