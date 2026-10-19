@@ -9,5 +9,5 @@
     "noEmit": true
   },
   "include": ["**/*.ts", "../shared/**/*.ts"],
-  "exclude": ["../shared/**/*.spec.ts"]
+  "exclude": ["**/*.spec.ts", "../shared/**/*.spec.ts"]
 }

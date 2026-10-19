@@ -5,14 +5,14 @@ export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', loadComponent: () => import('./login/login').then((m) => m.Login) },
   {
-    path: 'products',
+    path: 'batches',
     canActivate: [authGuard],
-    loadComponent: () => import('./products/products').then((m) => m.Products),
+    loadComponent: () => import('./batches/batches').then((m) => m.Batches),
   },
   {
-    path: 'products/:id',
+    path: 'batches/:id',
     canActivate: [authGuard],
-    loadComponent: () => import('./product-editor/product-editor').then((m) => m.ProductEditor),
+    loadComponent: () => import('./batch-editor/batch-editor').then((m) => m.BatchEditor),
   },
   { path: '**', redirectTo: 'login' },
 ];

@@ -1,0 +1,135 @@
+<p class="hint">
+  Як продаватиметься партія: етапи йдуть один за одним. Частка — від придатних до продажу одиниць, знижка — від
+  базової ціни {{ price() | currency: currency() }}.
+</p>
+
+<mat-tab-group
+  [selectedIndex]="selectedIndex()"
+  (selectedIndexChange)="selectedIndex.set($event)"
+  mat-stretch-tabs="false"
+  aria-label="Сценарії продажу"
+>
+  @for (scenario of scenarios().controls; track scenario; let s = $index) {
+    @let analysis = analyses()[s];
+    @let stagesAt = stageResults()[s];
+    <mat-tab [label]="scenario.controls.name.value || 'Сценарій ' + (s + 1)">
+      <div class="tab" [formGroup]="scenario">
+        <div class="scenario-head">
+          <mat-form-field appearance="outline" class="grow">
+            <mat-label>Назва сценарію</mat-label>
+            <input matInput formControlName="name" maxlength="200" />
+            <mat-error>Вкажіть назву.</mat-error>
+          </mat-form-field>
+          @if (scenarios().length > 1) {
+            <button mat-button type="button" (click)="removeScenario(s)">
+              <mat-icon>delete</mat-icon>
+              Видалити сценарій
+            </button>
+          }
+        </div>
+
+        <ol class="stages">
+          @for (stage of scenario.controls.stages.controls; track stage; let i = $index, first = $first, last = $last) {
+            @let result = stagesAt?.[i];
+            @let id = 'stage-' + s + '-' + i;
+            <li class="stage" [formGroup]="stage" role="group" [attr.aria-labelledby]="id + '-title'">
+              <div class="stage-head">
+                <h3 [id]="id + '-title'">Етап {{ i + 1 }}</h3>
+                <span class="stage-actions">
+                  <button
+                    mat-icon-button
+                    type="button"
+                    [id]="id + '-up'"
+                    [disabled]="first"
+                    (click)="moveStage(scenario, s, i, -1)"
+                    [attr.aria-label]="'Перемістити етап ' + (i + 1) + ' вище'"
+                  >
+                    <mat-icon>arrow_upward</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    [id]="id + '-down'"
+                    [disabled]="last"
+                    (click)="moveStage(scenario, s, i, 1)"
+                    [attr.aria-label]="'Перемістити етап ' + (i + 1) + ' нижче'"
+                  >
+                    <mat-icon>arrow_downward</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    [disabled]="first && last"
+                    (click)="removeStage(scenario, s, i)"
+                    [attr.aria-label]="'Видалити етап ' + (i + 1)"
+                  >
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </span>
+              </div>
+
+              <div class="fields">
+                <mat-form-field appearance="outline">
+                  <mat-label>Частка</mat-label>
+                  <input matInput [id]="id + '-share'" type="number" inputmode="decimal" min="0" max="100" step="any" formControlName="share" />
+                  <span matTextSuffix>%</span>
+                  @if (result) {
+                    <mat-hint>{{ result.units | number: '1.0-1' }} шт</mat-hint>
+                  }
+                  <mat-error>Від 0 до 100.</mat-error>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Знижка</mat-label>
+                  <input matInput type="number" inputmode="decimal" min="0" max="100" step="any" formControlName="discount" />
+                  <span matTextSuffix>%</span>
+                  @if (result) {
+                    <mat-hint>−{{ price() - result.unitPrice | currency: currency() }} з одиниці</mat-hint>
+                  }
+                  <mat-error>Від 0 до 100.</mat-error>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Місяців</mat-label>
+                  <input matInput type="number" inputmode="decimal" min="0" max="120" step="any" formControlName="months" />
+                  <mat-error>Від 0 до 120.</mat-error>
+                </mat-form-field>
+              </div>
+
+              @if (result) {
+                <p class="stage-result">
+                  <span>{{ result.units | number: '1.0-1' }} шт</span>
+                  <span>по <strong>{{ result.unitPrice | currency: currency() }}</strong></span>
+                  <span>= {{ result.revenue | currency: currency() }}</span>
+                </p>
+              }
+            </li>
+          }
+        </ol>
+
+        @if (analysis && !analysis.validation.valid) {
+          <p class="warning" role="status">
+            <mat-icon aria-hidden="true">warning</mat-icon>
+            Сума часток — {{ analysis.sharesTotal | percent: '1.0-1' }}, а має бути 100%. Результати порахувати можна,
+            але частина партії {{ analysis.sharesTotal < 1 ? 'не продається' : 'рахується двічі' }}.
+          </p>
+        }
+
+        <div class="tab-actions">
+          <button
+            mat-stroked-button
+            type="button"
+            [id]="'add-stage-' + s"
+            [disabled]="scenario.controls.stages.length >= maxStages"
+            (click)="addStage(scenario, s)"
+          >
+            <mat-icon>add</mat-icon>
+            Додати етап
+          </button>
+          <button mat-button type="button" [disabled]="scenarios().length >= maxScenarios" (click)="addScenario()">
+            <mat-icon>content_copy</mat-icon>
+            Новий сценарій з цього
+          </button>
+        </div>
+      </div>
+    </mat-tab>
+  }
+</mat-tab-group>

@@ -1,0 +1,133 @@
+<mat-toolbar>
+  <a mat-icon-button routerLink="/batches" aria-label="До списку партій">
+    <mat-icon>arrow_back</mat-icon>
+  </a>
+  <span>{{ isNew() ? 'Нова партія' : 'Партія' }}</span>
+  <span class="toolbar-spacer"></span>
+  @if (status() === 'ready') {
+    <button mat-flat-button type="button" (click)="save()" [disabled]="saving()">Зберегти</button>
+  }
+</mat-toolbar>
+@if (status() === 'loading' || saving()) {
+  <mat-progress-bar mode="indeterminate" aria-label="Зачекайте" />
+}
+
+<main class="page">
+  @switch (status()) {
+    @case ('not-found') {
+      <p role="alert">Партію не знайдено. <a routerLink="/batches">До списку партій</a></p>
+    }
+    @case ('error') {
+      <p role="alert" class="error">Не вдалося завантажити партію. Оновіть сторінку.</p>
+    }
+    @case ('ready') {
+      <form class="layout" [formGroup]="form" (ngSubmit)="save()">
+        <div class="fields">
+          <h1 class="visually-hidden">{{ form.controls.name.value || 'Нова партія' }}</h1>
+
+          <section aria-labelledby="main-heading">
+            <h2 id="main-heading">Основне</h2>
+            <mat-form-field appearance="outline" class="full">
+              <mat-label>Назва партії</mat-label>
+              <input matInput formControlName="name" maxlength="200" />
+              <mat-error>Вкажіть назву партії.</mat-error>
+            </mat-form-field>
+            <div class="row">
+              <mat-form-field appearance="outline">
+                <mat-label>Кількість</mat-label>
+                <input matInput type="number" inputmode="decimal" min="0" step="any" formControlName="quantity" />
+                <span matTextSuffix>шт</span>
+                <mat-error>Вкажіть кількість більше 0.</mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Валюта</mat-label>
+                <mat-select formControlName="currency">
+                  @for (code of currencies; track code) {
+                    <mat-option [value]="code">{{ code }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Брак</mat-label>
+                <input matInput type="number" inputmode="decimal" min="0" max="99" step="any" formControlName="defectRate" />
+                <span matTextSuffix>%</span>
+                <mat-hint>Придатних: {{ sellableUnits() | number: '1.0-1' }} шт</mat-hint>
+                <mat-error>Від 0 до 99.</mat-error>
+              </mat-form-field>
+            </div>
+          </section>
+
+          <section aria-labelledby="costs-heading">
+            <h2 id="costs-heading">Витрати</h2>
+            <app-costs-section [costs]="form.controls.costs" [currency]="currency()" [price]="price()" />
+          </section>
+
+          <section aria-labelledby="scenarios-heading">
+            <h2 id="scenarios-heading">Сценарії</h2>
+            <app-scenarios-section
+              [scenarios]="form.controls.scenarios"
+              [analyses]="analyses()"
+              [currency]="currency()"
+              [price]="price()"
+              [(selectedIndex)]="selectedScenario"
+            />
+          </section>
+        </div>
+
+        <aside class="summary" aria-labelledby="results-heading">
+          <div class="row">
+            <mat-form-field appearance="outline">
+              <mat-label>Цільовий прибуток з партії</mat-label>
+              <input matInput type="number" inputmode="decimal" min="0" step="any" formControlName="targetProfit" />
+              <span matTextSuffix>{{ currency() }}</span>
+              <mat-error>0 або більше.</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Ціна конкурента</mat-label>
+              <input matInput type="number" inputmode="decimal" min="0" step="any" formControlName="competitorPrice" />
+              <span matTextSuffix>{{ currency() }}</span>
+              <mat-error>0 або більше.</mat-error>
+            </mat-form-field>
+          </div>
+          <app-results-card
+            [analysis]="selectedAnalysis()"
+            [scenarioName]="selectedScenarioName()"
+            [currency]="currency()"
+            [targetProfit]="targetProfit()"
+            [competitorPrice]="competitorPrice()"
+            [price]="price()"
+            (priceChange)="setPrice($event)"
+          />
+        </aside>
+
+        <section class="comparison" aria-labelledby="comparison-heading">
+          <h2 id="comparison-heading">Порівняння сценаріїв</h2>
+          <app-comparison-table
+            [names]="scenarioNames()"
+            [analyses]="analyses()"
+            [price]="price()"
+            [currency]="currency()"
+            [selectedIndex]="selectedScenario()"
+            (select)="selectedScenario.set($event)"
+          />
+        </section>
+
+        <div class="actions">
+          <button mat-flat-button type="submit" [disabled]="saving()">Зберегти</button>
+          @if (!isNew()) {
+            @if (confirmingDelete()) {
+              <span class="confirm" role="group" aria-label="Підтвердження видалення">
+                <button mat-flat-button type="button" class="danger" (click)="delete()" [disabled]="saving()">
+                  Так, видалити
+                </button>
+                <button mat-button type="button" (click)="confirmingDelete.set(false)">Скасувати</button>
+              </span>
+            } @else {
+              <button mat-button type="button" (click)="confirmingDelete.set(true)">Видалити партію</button>
+            }
+          }
+        </div>
+      </form>
+    }
+  }
+</main>
